@@ -8,16 +8,14 @@ import java.io.Serializable;
 
 public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
 
-    // Inner class representing a node in the 2-4 tree
     public class Node implements TreeNode<T>, Serializable {
         List<T> values;       // Holds 1 to 3 values
         List<Node> children;  // Holds 0 to 4 children
 
         public Node() {
-            values = new ArrayList<>(3);       // Values in the node
-            children = new ArrayList<>(4);     // Children nodes
+            values = new ArrayList<>(3);
+            children = new ArrayList<>(4);
         }
-
 
         @Override
         public String getColor() {
@@ -29,7 +27,7 @@ public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
         }
 
         boolean isFull() {
-            return values.size() == 3;  // Node is full if it has 3 values
+            return values.size() == 3;
         }
 
         @Override
@@ -37,7 +35,6 @@ public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
             return values.isEmpty() ? null : values.get(0);
         }
 
-        // Public getter to retrieve all values for drawing purposes
         public List<T> getValues() {
             return values;
         }
@@ -52,12 +49,12 @@ public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
 
         @Override
         public TreeNode<T> getLeft() {
-            return children.isEmpty() ? null : children.get(0); // Return leftmost child if it exists
+            return children.isEmpty() ? null : children.get(0);
         }
 
         @Override
         public TreeNode<T> getRight() {
-            return children.size() < 2 ? null : children.get(1); // Return the second child as the "right" node
+            return children.size() < 2 ? null : children.get(1);
         }
     }
 
@@ -65,73 +62,69 @@ public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
     private int size;
 
     public Tree24() {
-        root = new Node();  // Initialize root as an empty node
+        root = new Node();
         size = 0;
     }
 
-    // Public insertion method
     public void insert(T value) {
         if (root.isFull()) {
-            // Split the root if it is full and create a new root
             Node newRoot = new Node();
             newRoot.children.add(root);
             splitChild(newRoot, 0);
             root = newRoot;
         }
-        insertNonFull(root, value);  // Insert value in the non-full root
+        insertNonFull(root, value);
         size++;
     }
 
-    // Insert into a non-full node
     private void insertNonFull(Node node, T value) {
         int i = node.values.size() - 1;
 
         if (node.isLeaf()) {
-            // Insert value into the leaf node at the correct position
             node.values.add(value);
             Collections.sort(node.values);
         } else {
-            // Find the child to insert into
             while (i >= 0 && value.compareTo(node.values.get(i)) < 0) {
                 i--;
             }
-            i++;  // Move to the appropriate child
-
-            if (node.children.get(i).isFull()) {
-                // Split the full child and update node values
+            i++;
+            if (i < node.children.size() && node.children.get(i).isFull()) {
                 splitChild(node, i);
                 if (value.compareTo(node.values.get(i)) > 0) {
                     i++;
                 }
             }
-            insertNonFull(node.children.get(i), value);
+            if (i < node.children.size()) {
+                insertNonFull(node.children.get(i), value);
+            }
         }
     }
 
-    // Split a full child node
     private void splitChild(Node parent, int index) {
         Node fullChild = parent.children.get(index);
-        Node newNode = new Node();  // Create a new node for the split
+        Node newNode = new Node();
 
-        // Middle value is moved up to the parent
+        // Check if there are enough values to split
+        if (fullChild.values.size() < 3) {
+            return;
+        }
+
         T middleValue = fullChild.values.get(1);
         parent.values.add(index, middleValue);
         Collections.sort(parent.values);
 
-        // Distribute the remaining values and children
         newNode.values.add(fullChild.values.get(2));
-        fullChild.values = fullChild.values.subList(0, 1);
+        fullChild.values = new ArrayList<>(fullChild.values.subList(0, 1));
 
-        if (!fullChild.isLeaf()) {
+        if (!fullChild.isLeaf() && fullChild.children.size() >= 4) {
             newNode.children.add(fullChild.children.get(2));
             newNode.children.add(fullChild.children.get(3));
-            fullChild.children = fullChild.children.subList(0, 2);
+            fullChild.children = new ArrayList<>(fullChild.children.subList(0, 2));
         }
 
         parent.children.add(index + 1, newNode);
     }
 
-    // In-order traversal of the tree
     @Override
     public List<T> inorderTraversal() {
         List<T> result = new ArrayList<>();
@@ -139,25 +132,20 @@ public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
         return result;
     }
 
-    // Helper method for in-order traversal
     private void inorderTraversal(Node node, List<T> result) {
         if (node == null) return;
 
         for (int i = 0; i < node.values.size(); i++) {
-            // Traverse the left child if it exists
             if (!node.isLeaf() && i < node.children.size()) {
                 inorderTraversal(node.children.get(i), result);
             }
-            // Add the current value
             result.add(node.values.get(i));
         }
-        // Traverse the rightmost child
         if (!node.isLeaf() && node.children.size() > node.values.size()) {
             inorderTraversal(node.children.get(node.values.size()), result);
         }
     }
 
-    // Helper to print the tree (for debugging purposes)
     public void printTree() {
         printTree(root, 0);
     }
@@ -173,15 +161,15 @@ public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
 
     @Override
     public TreeNode<T> getRoot() {
-        return root;  // Return the root of the tree
+        return root;
     }
 
     public Color color() {
-        return Color.BROWN; // Arbitrary color for Tree24 nodes
+        return Color.BROWN;
     }
 
     public String type() {
-        return "2-4 Tree"; // Return the type of the tree
+        return "2-4 Tree";
     }
 
     @Override
@@ -201,22 +189,19 @@ public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
     }
 
     private boolean contains(Node node, T value) {
-        if (node == null) {
-            return false;
-        }
+        if (node == null) return false;
 
         for (T val : node.values) {
-            if (val.compareTo(value) == 0) {
-                return true;
-            }
+            if (val.compareTo(value) == 0) return true;
         }
 
         for (int i = 0; i < node.values.size(); i++) {
             if (value.compareTo(node.values.get(i)) < 0) {
-                return contains(node.children.get(i), value);
+                return i < node.children.size() && contains(node.children.get(i), value);
             }
         }
-        return !node.isLeaf() && contains(node.children.get(node.values.size()), value);
+        return !node.isLeaf() && node.children.size() > node.values.size()
+                && contains(node.children.get(node.values.size()), value);
     }
 
     public boolean delete(T value) {
@@ -312,6 +297,4 @@ public class Tree24<T extends Comparable<T>> implements Tree<T>, Serializable {
             leftChild.children.addAll(rightChild.children);
         }
     }
-
-
 }
