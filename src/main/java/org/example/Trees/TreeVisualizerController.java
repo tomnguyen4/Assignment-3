@@ -1,5 +1,6 @@
 package org.example.Trees;
-//Author: Abdelnasser Ouda
+
+// Author: Abdelnasser Ouda
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,68 +27,69 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class TreeVisualizerController {
-    private VBox view;
-    private ComboBox<String> treeTypeComboBox;
+    private VBox view;  // Main container for UI components
+    private ComboBox<String> treeTypeComboBox;  // Dropdown to select tree type
     private TextField inputField;
-    private Button insertButton, deleteButton, searchButton, clearButton;
-    private Canvas treeCanvas;
-    private TextArea outputArea;
+    private Button insertButton, deleteButton, searchButton, clearButton, inorderTraversalButton; // Action buttons
+    private Canvas treeCanvas;  // Canvas for tree visualization
+    private TextArea outputArea;  // Displays outputs and messages
     private List<Integer> keys = new ArrayList<>();
 
-    private Tree<Integer> currentTree;
-    private Map<String, Tree<Integer>> trees;
+    private Tree<Integer> currentTree;  // Reference to the currently selected tree
+    private Map<String, Tree<Integer>> trees;  // Map to hold different tree instances
 
-    private Stage stage;  // You'll need to set this when creating the controller
+    private Stage stage; // Stage required for file chooser dialogs
 
     public void setStage(Stage stage) {
         this.stage = stage;
     }
 
+    // Constructor: Initializes trees, UI components, and event handlers
     public TreeVisualizerController() {
-        initializeTrees();
-        initializeView();
-        setupEventHandlers();
+        initializeTrees();  // Setup tree types
+        initializeView();   // Setup UI components
+        setupEventHandlers();  // Assign actions to buttons
     }
 
     private void initializeTrees() {
         trees = new HashMap<>();
-        trees.put("Binary Search Tree", new BinarySearchTree<>());
+        trees.put("Binary Search Tree", new BinarySearchTree<>());  // Initialize tree types
         trees.put("Red Black Tree", new RedBlack<>());
-        //trees.put("AVL Tree", new AVLTree<>());
-        //trees.put("Red-Black Tree", new RedBlackTree<>());
-        //trees.put("Min Heap", new MinHeap<>());
-        //trees.put("Max Heap", new MaxHeap<>());
-        //trees.put("2-4 Tree", new Tree24<>());
-        currentTree = trees.get("Binary Search Tree");
+        trees.put("Min Heap", new MinHeap<>());
+        trees.put("Max Heap", new MaxHeap<>());
+        currentTree = trees.get("Binary Search Tree");  // Set default tree
     }
 
     private void initializeView() {
         view = new VBox(10);
         view.setPadding(new Insets(10));
 
+        // Set up ComboBox for tree type selection
         treeTypeComboBox = new ComboBox<>();
         treeTypeComboBox.getItems().addAll(trees.keySet());
         treeTypeComboBox.setValue("Binary Search Tree");
 
-
+        // Initialize input field and buttons
         inputField = new TextField();
         insertButton = new Button("Insert");
         deleteButton = new Button("Delete");
         searchButton = new Button("Search");
         clearButton = new Button("Clear");
+        inorderTraversalButton = new Button("In-Order Traversal");  // New button for in-order traversal
 
-        HBox buttonBox = new HBox(10, insertButton, deleteButton, searchButton, clearButton);
+        // Arrange buttons in an HBox
+        HBox buttonBox = new HBox(10, insertButton, deleteButton, searchButton, clearButton, inorderTraversalButton);
 
+        // Canvas for drawing the tree
         treeCanvas = new Canvas(1000, 675);
 
+        // Output area for displaying messages and traversal results
         outputArea = new TextArea();
         outputArea.setEditable(false);
         outputArea.setMinHeight(100);
         outputArea.setStyle("-fx-border-color: black; -fx-background-color: lightgray;");
 
-
-        VBox root = new VBox(10);
-
+        // Add all components to the view
         view.getChildren().addAll(
                 new HBox(10, new Label("Tree Type:"), treeTypeComboBox),
                 new HBox(10, new Label("Value:"), inputField),
@@ -98,24 +100,33 @@ public class TreeVisualizerController {
     }
 
     private void setupEventHandlers() {
-        insertButton.setOnAction(e -> handleInsert());
-        deleteButton.setOnAction(e -> handleDelete());
-        searchButton.setOnAction(e -> handleSearch());
-        clearButton.setOnAction(e -> handleClear());
-        treeTypeComboBox.setOnAction(e -> handleTreeTypeChange());
+        // Assign actions to buttons
+        insertButton.setOnAction(e -> handleInsert());  // Action for insert
+        deleteButton.setOnAction(e -> handleDelete());  // Action for delete
+        searchButton.setOnAction(e -> handleSearch());  // Action for search
+        clearButton.setOnAction(e -> handleClear());    // Action for clear
+        inorderTraversalButton.setOnAction(e -> handleInorderTraversal());  // Action for in-order traversal
+        treeTypeComboBox.setOnAction(e -> handleTreeTypeChange());  // Action for changing tree type
+    }
+
+    private void handleInorderTraversal() {
+        if (currentTree != null) {
+            List<Integer> traversalResult = currentTree.inorderTraversal();
+            outputArea.appendText("In-Order Traversal: " + traversalResult + "\n");
+        } else {
+            outputArea.appendText("No tree selected.\n");
+        }
     }
 
     private void handleInsert() {
         try {
             int value = Integer.parseInt(inputField.getText());
             if (!currentTree.contains(value)) {
-                System.out.println("inside handleInsert and going to call currentTree.insert("+value+")");
                 currentTree.insert(value);
-                updateTreeVisualization();
+                updateTreeVisualization();  // Refresh tree view after insert
                 outputArea.appendText("Inserted: " + value + "\n");
             } else
                 outputArea.appendText("The value " + value + " already in the tree.\n");
-
         } catch (NumberFormatException ex) {
             outputArea.appendText("Invalid input. Please enter an integer.\n");
         }
@@ -125,7 +136,7 @@ public class TreeVisualizerController {
         try {
             int value = Integer.parseInt(inputField.getText());
             boolean deleted = currentTree.delete(value);
-            updateTreeVisualization();
+            updateTreeVisualization();  // Refresh tree view after delete
             outputArea.appendText(deleted ? "Deleted: " + value + "\n" : "Value not found: " + value + "\n");
         } catch (NumberFormatException ex) {
             outputArea.appendText("Invalid input. Please enter an integer.\n");
@@ -157,12 +168,13 @@ public class TreeVisualizerController {
 
     private void updateTreeVisualization() {
         GraphicsContext gc = treeCanvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, treeCanvas.getWidth(), treeCanvas.getHeight());
+        gc.clearRect(0, 0, treeCanvas.getWidth(), treeCanvas.getHeight());  // Clear previous drawing
 
         if (currentTree.getRoot() != null) {
             int depth = getTreeDepth(currentTree.getRoot());
             int width = getTreeWidth(currentTree.getRoot());
 
+            // Calculate spacing based on tree size and depth
             double verticalSpacing = (treeCanvas.getHeight()) / (depth + currentTree.size() / 3);
             double horizontalSpacing = treeCanvas.getWidth() / (width + currentTree.size() / 2);
 
@@ -174,13 +186,11 @@ public class TreeVisualizerController {
 
     private void drawTree(GraphicsContext gc, TreeNode<Integer> node, double x, double y, double hSpacing, double vSpacing, int width) {
         if (node == null) return;
-
-       // if you implement 24Tree, you need to create draw24Tree and all other needed methods
-       drawNormalTree(gc, currentTree.getRoot(), treeCanvas.getWidth() / 2, 40, hSpacing, vSpacing, width);
-
+        drawNormalTree(gc, currentTree.getRoot(), treeCanvas.getWidth() / 2, 40, hSpacing, vSpacing, width);
     }
 
     private void drawNormalTree(GraphicsContext gc, TreeNode<Integer> node, double x, double y, double hSpacing, double vSpacing, int width) {
+        // Set color based on tree type
         if (currentTree.type() == "RBT")
             if (node.getColor() == "RED")
                 gc.setFill(Color.RED);
@@ -212,14 +222,6 @@ public class TreeVisualizerController {
         }
     }
 
-    private List<TreeNode<Integer>> getNodeChildren(TreeNode<Integer> node) {
-        List<TreeNode<Integer>> children = new ArrayList<>();
-        if (node.getLeft() != null) children.add(node.getLeft());
-        if (node.getRight() != null) children.add(node.getRight());
-        // Add logic here to get additional children if they exist
-        return children;
-    }
-
     private int getTreeDepth(TreeNode<Integer> node) {
         if (node == null) return 0;
         return 1 + Math.max(getTreeDepth(node.getLeft()), getTreeDepth(node.getRight()));
@@ -236,19 +238,15 @@ public class TreeVisualizerController {
     }
 
     public void saveTree() {
-        // This is a placeholder implementation. In a real application, you would
-        // implement serialization of the tree structure to a file.
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Tree");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Tree Files", "*.tree")
-        );
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Tree Files", "*.tree"));
         File file = fileChooser.showSaveDialog(stage);
 
         if (file != null) {
             try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-                outputArea.appendText("Tree before saving" + currentTree.inorderTraversal() + ".\n");
-                out.writeObject(currentTree);
+                outputArea.appendText("Tree before saving: " + currentTree.inorderTraversal() + "\n");
+                out.writeObject(currentTree);  // Serialize the current tree
                 outputArea.appendText("Tree saved successfully.\n");
             } catch (IOException e) {
                 outputArea.appendText("Error saving tree: " + e.getMessage() + "\n");
@@ -258,13 +256,9 @@ public class TreeVisualizerController {
     }
 
     public void loadTree() {
-        // This is a placeholder implementation. In a real application, you would
-        // implement deserialization of the tree structure from a file.
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Load Tree");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Tree Files", "*.tree")
-        );
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Tree Files", "*.tree"));
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null) {
@@ -278,32 +272,13 @@ public class TreeVisualizerController {
 
                 @SuppressWarnings("unchecked")
                 Tree<Integer> loadedTree = (Tree<Integer>) loadedObject;
-
-                // Determine the type of the loaded tree and update the UI
-                String treeType = determineTreeType(loadedTree);
-                if (treeType == null) {
-                    outputArea.appendText("Error: Unknown tree type.\n");
-                    return;
-                }
-
-                treeTypeComboBox.setValue(treeType);
-                currentTree = loadedTree;
-
-                // Debug information
-                outputArea.appendText("Tree loaded successfully.\n");
-                outputArea.appendText("Tree type: " + currentTree.type() + "\n");
-                outputArea.appendText("Tree size: " + currentTree.size() + "\n");
-                outputArea.appendText("Tree contents: " + currentTree.inorderTraversal() + "\n");
-
+                currentTree = loadedTree;  // Set the loaded tree as the current tree
                 updateTreeVisualization();
+                outputArea.appendText("Tree loaded successfully.\n");
             } catch (IOException | ClassNotFoundException e) {
                 outputArea.appendText("Error loading tree: " + e.getMessage() + "\n");
-                e.printStackTrace(); // Print stack trace for debugging
+                e.printStackTrace();
             }
         }
-    }
-
-    private String determineTreeType(Tree<?> tree) {
-        return currentTree.type();
     }
 }
