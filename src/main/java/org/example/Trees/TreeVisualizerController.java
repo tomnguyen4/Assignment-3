@@ -56,7 +56,7 @@ public class TreeVisualizerController {
         trees.put("Min Heap", new MinHeap<>());
         trees.put("Max Heap", new MaxHeap<>());
         trees.put("Tree2-4", new Tree24<>());
-        trees.put("Red-Black", new <>());
+        trees.put("Red-Black", new RedBlack<>());
         currentTree = trees.get("Binary Search Tree");
     }
 
