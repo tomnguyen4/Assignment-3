@@ -274,7 +274,7 @@ public class RedBlack<T extends Comparable<T>> implements Tree<T>, Serializable 
     
     private Node delete(Node root, Node nodeToDelete) {
         sentinel.isRed = false;
-
+        int updated = 0;
         Node replacement = null;
         boolean originalColor = nodeToDelete.isRed;
         System.out.println("Deleting Node " + nodeToDelete.value + " (Original color: " + (originalColor ? "Red" : "Black") + ")");
@@ -302,6 +302,13 @@ public class RedBlack<T extends Comparable<T>> implements Tree<T>, Serializable 
             System.out.println("Node " + nodeToDelete.value + " has two children, finding successor");
             Node successor = findMin(nodeToDelete.right); //Find in-order successor
             replacement = successor.right;
+            if(replacement != null)
+            {
+                System.out.println("_xXReplacement not null, with value " + replacement.value);
+            }
+            else {
+                System.out.println("Replacement still null somehow");
+            }
             originalColor = successor.isRed;
             System.out.println("Successor found: Node " + successor.value + " (Color: " + (originalColor ? "Red" : "Black") + ")");
         
@@ -322,6 +329,7 @@ public class RedBlack<T extends Comparable<T>> implements Tree<T>, Serializable 
                 System.out.println("Node " + successor.left.value + " has new parent " + successor.left.parent.value);
             }
             successor.isRed = nodeToDelete.isRed; //Preserve original color
+            replacement = successor;
             System.out.println("Node " + nodeToDelete.value + " is replaced by its successor " + successor.value);
         }
         
@@ -361,11 +369,6 @@ public class RedBlack<T extends Comparable<T>> implements Tree<T>, Serializable 
                         replacement.parent.right = replacement;
                     }
                 }
-                if(replacement == null)
-                {
-                    System.out.println("Replacement is STILL null");
-
-                }
                 else{
                     System.out.println("Replacement has been set to sentinal with value: ");
                     if(replacement.value == null)
@@ -382,7 +385,7 @@ public class RedBlack<T extends Comparable<T>> implements Tree<T>, Serializable 
                 }
                 System.out.println("Replacement parent is now " + replacement.parent.value);
 
-            }   
+            } 
             System.out.println("Fixing double black starting from Node " + (replacement != null ? replacement.value : "null"));
             root = fixDoubleBlack(replacement);
             if(replacement.value == null)
