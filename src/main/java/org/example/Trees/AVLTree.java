@@ -1,112 +1,115 @@
-class AVLNode {
-    int key;
-    int height;
-    AVLNode left, right;
+package org.example.Trees;
 
-    AVLNode(int d) {
-        key = d;
-        height = 1;
-    }
-}
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-public class AVLTree {
+public class AVLTree implements Serializable {
     private AVLNode root;
 
-    // Utility function to get the height of the node
+    //height of the node
     private int height(AVLNode N) {
         if (N == null)
             return 0;
         return N.height;
     }
 
-    // Utility function to right rotate subtree rooted with y
+    //right rotate subtree rooted with y
     private AVLNode rightRotate(AVLNode y) {
         AVLNode x = y.left;
         AVLNode T2 = x.right;
 
-        // Perform rotation
+        //rotation
         x.right = y;
         y.left = T2;
 
-        // Update heights
+        //Update height
         y.height = Math.max(height(y.left), height(y.right)) + 1;
         x.height = Math.max(height(x.left), height(x.right)) + 1;
 
-        // Return new root
+        //Return new root
         return x;
     }
 
-    // Utility function to left rotate subtree rooted with x
+    //left rotate subtree rooted with x
     private AVLNode leftRotate(AVLNode x) {
         AVLNode y = x.right;
         AVLNode T2 = y.left;
 
-        // Perform rotation
+        //rotation
         y.left = x;
         x.right = T2;
 
-        // Update heights
+        //Update height
         x.height = Math.max(height(x.left), height(x.right)) + 1;
         y.height = Math.max(height(y.left), height(y.right)) + 1;
 
-        // Return new root
+        //new root
         return y;
     }
 
-    // Get balance factor of node N
+    //Get balance factor of node N
     private int getBalance(AVLNode N) {
         if (N == null)
             return 0;
         return height(N.left) - height(N.right);
     }
 
-    // Insert a node
-    public AVLNode insert(AVLNode node, int key) {
-        // Normal BST insert
+    //Insert
+    public void insert(int key) {
+        root = insert(root, key);
+    }
+
+    private AVLNode insert(AVLNode node, int key) {
+        //BST insert
         if (node == null)
             return (new AVLNode(key));
+
         if (key < node.key)
             node.left = insert(node.left, key);
         else if (key > node.key)
             node.right = insert(node.right, key);
-        else // Duplicate keys are not allowed
+        else
             return node;
 
-        // Update height of this ancestor node
+        //Update height
         node.height = 1 + Math.max(height(node.left), height(node.right));
 
-        // Get the balance factor
+        //Get the balance factor
         int balance = getBalance(node);
 
-        // If this node becomes unbalanced, then there are 4 cases
 
-        // Left Left Case
+        //Left Left
         if (balance > 1 && key < node.left.key)
             return rightRotate(node);
 
-        // Right Right Case
+        //Right Right
         if (balance < -1 && key > node.right.key)
             return leftRotate(node);
 
-        // Left Right Case
+        //Left Right
         if (balance > 1 && key > node.left.key) {
             node.left = leftRotate(node.left);
             return rightRotate(node);
         }
 
-        // Right Left Case
+        //Right Left
         if (balance < -1 && key < node.right.key) {
             node.right = rightRotate(node.right);
             return leftRotate(node);
         }
 
-        // Return the (unchanged) node pointer
+        // Return node pointer
         return node;
     }
 
-    // Delete a node
-    public AVLNode delete(AVLNode root, int key) {
-        // STEP 1: PERFORM STANDARD BST DELETE
+    //Delete
+    public void delete(int key) {
+        root = delete(root, key);
+    }
+
+    private AVLNode delete(AVLNode root, int key) {
+        //BST DELETE
         if (root == null)
             return root;
 
@@ -115,51 +118,50 @@ public class AVLTree {
         else if (key > root.key)
             root.right = delete(root.right, key);
         else {
-            // Node with only one child or no child
+            //Node with only one child or no child
             if ((root.left == null) || (root.right == null)) {
                 AVLNode temp = root.left != null ? root.left : root.right;
 
-                // No child case
+                //No child
                 if (temp == null) {
                     temp = root;
                     root = null;
-                } else // One child case
-                    root = temp; // Copy the contents of the non-empty child
+                } else // One child
+                    root = temp; // Copy
             } else {
-                // Node with two children: Get the inorder successor (smallest in the right subtree)
+                //Node with two children
                 AVLNode temp = minValueNode(root.right);
-                root.key = temp.key; // Copy the inorder successor's content to this node
-                root.right = delete(root.right, temp.key); // Delete the inorder successor
+                root.key = temp.key; //Copy
+                root.right = delete(root.right, temp.key); //Delete
             }
         }
 
-        // If the tree had only one node then return
+        //If the tree had only one node then return
         if (root == null)
             return root;
 
-        // STEP 2: UPDATE HEIGHT OF THE CURRENT NODE
+        //UPDATE HEIGHT
         root.height = 1 + Math.max(height(root.left), height(root.right));
 
-        // STEP 3: GET THE BALANCE FACTOR OF THIS NODE (to check whether this node became unbalanced)
+        //GET THE BALANCE FACTOR
         int balance = getBalance(root);
 
-        // If this node becomes unbalanced, then there are 4 cases
 
-        // Left Left Case
+        //Left Left 
         if (balance > 1 && getBalance(root.left) >= 0)
             return rightRotate(root);
 
-        // Left Right Case
+        //Left Right
         if (balance > 1 && getBalance(root.left) < 0) {
             root.left = leftRotate(root.left);
             return rightRotate(root);
         }
 
-        // Right Right Case
+        //Right Right
         if (balance < -1 && getBalance(root.right) <= 0)
             return leftRotate(root);
 
-        // Right Left Case
+        //Right Left
         if (balance < -1 && getBalance(root.right) > 0) {
             root.right = rightRotate(root.right);
             return leftRotate(root);
@@ -168,7 +170,7 @@ public class AVLTree {
         return root;
     }
 
-    // Utility function to find the node with the minimum key value
+    //find the node with the minimum key value
     private AVLNode minValueNode(AVLNode node) {
         AVLNode current = node;
         while (current.left != null)
@@ -176,8 +178,12 @@ public class AVLTree {
         return current;
     }
 
-    // Search a node
-    public AVLNode search(AVLNode root, int key) {
+    //Search
+    public AVLNode search(int key) {
+        return search(root, key);
+    }
+
+    private AVLNode search(AVLNode root, int key) {
         if (root == null || root.key == key)
             return root;
 
@@ -187,43 +193,57 @@ public class AVLTree {
         return search(root.right, key);
     }
 
-    // Function to print the tree (In-order traversal)
-    public void inOrder(AVLNode root) {
-        if (root != null) {
-            inOrder(root.left);
-            System.out.print(root.key + " ");
-            inOrder(root.right);
+    //Clear
+    public void clear() {
+        root = null;
+    }
+
+    //In-order traversal
+    public List<Integer> inorderTraversal() {
+        List<Integer> result = new ArrayList<>();
+        inorderTraversal(root, result);
+        return result;
+    }
+
+    private void inorderTraversal(AVLNode node, List<Integer> result) {
+        if (node != null) {
+            inorderTraversal(node.left, result);
+            result.add(node.key);
+            inorderTraversal(node.right, result);
         }
     }
 
     public static void main(String[] args) {
         AVLTree tree = new AVLTree();
 
-        // Insert nodes
-        tree.root = tree.insert(tree.root, 10);
-        tree.root = tree.insert(tree.root, 20);
-        tree.root = tree.insert(tree.root, 30);
-        tree.root = tree.insert(tree.root, 40);
-        tree.root = tree.insert(tree.root, 50);
-        tree.root = tree.insert(tree.root, 25);
+        //InserT
+        tree.insert(10);
+        tree.insert(20);
+        tree.insert(30);
+        tree.insert(40);
+        tree.insert(50);
+        tree.insert(25);
 
-        // Print in-order traversal of the constructed AVL tree
+        //Print in-order traversal
         System.out.println("In-order traversal of the AVL tree:");
-        tree.inOrder(tree.root);
-        System.out.println();
+        System.out.println(tree.inorderTraversal());
 
-        // Deleting a node
-        tree.root = tree.delete(tree.root, 10);
+        //Deleting a node
+        tree.delete(10);
         System.out.println("In-order traversal after deletion of 10:");
-        tree.inOrder(tree.root);
-        System.out.println();
-        
-        // Searching for a node
-        AVLNode foundNode = tree.search(tree.root, 20);
+        System.out.println(tree.inorderTraversal());
+
+        //Searching a node
+        AVLNode foundNode = tree.search(20);
         if (foundNode != null) {
             System.out.println("Node with key " + foundNode.key + " found.");
         } else {
             System.out.println("Node with key not found.");
         }
+
+        //Clear tree
+        tree.clear();
+        System.out.println("In-order traversal after clearing the tree:");
+        System.out.println(tree.inorderTraversal());
     }
 }
